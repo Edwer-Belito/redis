@@ -1,0 +1,44 @@
+version: '3'
+
+networks:
+  redis-network:
+
+services:
+
+  cache:
+    image: redis:6.2-alpine
+    container_name: cache
+    hostname: cache
+    restart: always
+    healthcheck:
+      test: "exit 0"
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - cache:/data
+    
+  redis:
+    build:
+      context: ./
+      dockerfile: Dockerfile_1
+    depends_on:
+      cache:
+        condition: service_healthy     
+    image: redis:latest
+    ports:
+      - 9095:9095
+    expose:
+      - 9095
+    container_name: redis
+    hostname: redis
+    restart: always
+    networks:
+      - redis-network
+
+      
+volumes:
+  cache:
+    driver: local
+
+
